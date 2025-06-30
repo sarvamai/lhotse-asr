@@ -89,6 +89,11 @@ class AudioSource:
         :param force_opus_sampling_rate: This parameter is only used when we detect an OPUS file.
             It will tell ffmpeg to resample OPUS to this sampling rate.
         """
+        # Check if we have a custom recordings field that should override the default source
+        if hasattr(self, 'custom') and self.custom is not None and 'recordings' in self.custom:
+            # Use the recording from the custom field instead of the default source
+            self.source = self.custom['recordings']
+
         source = self._prepare_for_reading(offset=offset, duration=duration)
 
         samples, sampling_rate = read_audio(

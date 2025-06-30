@@ -1128,9 +1128,18 @@ class MixedCut(Cut):
             reference_audio = reference_cut.load_audio()
             reference_energy = audio_energy(reference_audio)
 
-        mixer = AudioMixer(
-            self.tracks[0].cut.load_audio(),
-            sampling_rate=self.tracks[0].cut.sampling_rate,
+        fixed_cut = first_cut
+        if 'recordings' in first_cut.custom:
+            actual_recording = first_cut.custom['recordings']
+            from dataclasses import replace
+            fixed_cut = replace(first_cut, recording=actual_recording)
+
+        if not fixed_cut or not hasattr(fixed_cut, 'recording') or not fixed_cut.recording.sources or not fixed_cut.recording.sources[0].source:
+            return None
+
+        mixer = AudioMixer( 
+            fixed_cut.load_audio(),
+            sampling_rate=fixed_cut.sampling_rate,
             reference_energy=reference_energy,
             base_offset=self.tracks[0].offset,
         )

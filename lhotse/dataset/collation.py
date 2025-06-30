@@ -601,6 +601,9 @@ def _read_audio(
     and ``suppress_errors`` was set to ``True``.
     """
     with suppress_audio_loading_errors(enabled=suppress_errors):
+        if hasattr(cut, 'custom') and cut.custom is not None and 'recordings' in cut.custom:
+            # Update the cut's recording source to use the custom field
+            cut.recording = cut.custom['recordings']
         if recording_field is None:
             audio = cut.load_audio()
         else:
@@ -609,8 +612,13 @@ def _read_audio(
                 attr, Recording
             ), f"Expected 'getattr(cut, {recording_field})' to yield Recording, got {type(attr)}"
             audio = cut.load_custom(recording_field)
-        if audio.shape[0] == 1:
-            audio = audio.squeeze(0)  # collapse channel dim if mono
+        # Handle multi-channel audio by selecting channel 0
+        if len(audio.shape) > 1:
+            if audio.shape[0] == 1:
+                audio = audio.squeeze(0)  # collapse channel dim if mono
+            else:
+                # For multi-channel audio, select channel 0
+                audio = audio[0]  # select first channel
         return torch.from_numpy(audio)
 
 
