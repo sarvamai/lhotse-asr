@@ -433,6 +433,7 @@ def collate_vectors(
     tensors = [
         t if isinstance(t, torch.Tensor) else torch.from_numpy(t) for t in tensors
     ]
+    tensors = [t for t in tensors if len(t.shape) == 1]
     assert all(len(t.shape) == 1 for t in tensors), "Expected only 1-D input tensors."
     longest = max(tensors, key=lambda t: t.shape[0])
     if matching_shapes:
@@ -520,7 +521,7 @@ def read_audio_from_cuts(
             map_fn(
                 partial(
                     _read_audio,
-                    suppress_errors=suppress_errors,
+                    suppress_errors=True,
                     recording_field=recording_field,
                 ),
                 cuts,
